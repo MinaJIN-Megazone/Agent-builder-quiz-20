@@ -35,6 +35,16 @@ The quiz uses public Edge Function endpoints; participants do not need a Supabas
 
 ## Deploy Functions
 
+Run the local deployment helper from the project root in PowerShell:
+
+```powershell
+.\setup-supabase.ps1
+```
+
+At the first prompt, copy the complete Supabase Personal Access Token (starts with `sbp_`) to the clipboard and press Enter. At the second prompt, copy the database password to the clipboard and press Enter. The script reads clipboard contents without echoing them; neither value is written to the repository. Do not use the browser `sb_publishable_...` key as the CLI access token.
+
+The helper links this project, applies the migration, uploads the ignored Edge Function secrets, and deploys the three functions below.
+
 ```powershell
 supabase functions deploy start-quiz
 supabase functions deploy submit-quiz
