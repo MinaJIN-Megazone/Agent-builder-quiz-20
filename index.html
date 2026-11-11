@@ -66,6 +66,10 @@
     .nav button:hover { background: #f6f1fb; }
     .nav button.active { color: white; background: #3640a6; box-shadow: 0 5px 13px rgba(54,64,166,.18); }
     .page { width: min(1120px, calc(100% - 36px)); margin: 42px auto 70px; }
+    .page.home-mode {
+      min-height: calc(100vh - 136px); margin-block: 0; padding-block: 32px;
+      display: grid; place-items: center;
+    }
     .local-note {
       display: flex; align-items: flex-start; gap: 10px; padding: 12px 15px;
       margin-bottom: 20px; color: #645875; background: rgba(255,255,255,.76);
@@ -97,6 +101,34 @@
     .stat-row { display: flex; flex-wrap: wrap; gap: 9px; margin: 20px 0 25px; }
     .stat { padding: 9px 12px; background: #f8f5fb; border-radius: 10px; font-size: 12px; color: #625c73; }
     .stat b { color: var(--ink); margin-right: 4px; }
+    .start-stage {
+      isolation: isolate; width: min(820px, 100%); min-height: 520px; padding: 54px clamp(24px, 6vw, 72px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center;
+      animation: stage-arrive .7s cubic-bezier(.22, 1, .36, 1) both;
+    }
+    .start-stage::after {
+      content: ""; position: absolute; z-index: -1; width: 430px; height: 430px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(247,169,197,.25), rgba(169,221,189,.12) 48%, transparent 70%);
+      animation: halo-breathe 4.8s ease-in-out infinite;
+    }
+    .start-stage > * { position: relative; z-index: 1; }
+    .start-orbit {
+      width: 96px; height: 96px; margin-bottom: 23px; display: grid; place-items: center;
+      border: 1px solid rgba(104,69,197,.18); border-radius: 50%; background: rgba(255,255,255,.72);
+      box-shadow: 0 14px 34px rgba(75,45,163,.12); font-size: 42px; animation: orbit-float 3.2s ease-in-out infinite;
+    }
+    .start-orbit::before, .start-orbit::after { content: ""; position: absolute; border-radius: 50%; border: 1px solid rgba(104,69,197,.14); }
+    .start-orbit::before { inset: -12px; }
+    .start-orbit::after { inset: -24px; border-style: dashed; animation: orbit-spin 14s linear infinite; }
+    .start-stage h1 { max-width: 680px; margin: 19px 0 14px; font-size: 44px; line-height: 1.22; letter-spacing: 0; }
+    .start-stage .welcome-copy { margin-inline: auto; margin-bottom: 19px; }
+    .start-stage .stat-row { justify-content: center; margin: 13px 0 28px; }
+    .start-stage .stat { animation: stat-arrive .55s cubic-bezier(.22, 1, .36, 1) both; }
+    .start-stage .stat:nth-child(2) { animation-delay: .08s; }
+    .start-stage .stat:nth-child(3) { animation-delay: .16s; }
+    .start-button { min-width: 250px; min-height: 52px; font-size: 15px; animation: button-pulse 2.8s ease-in-out infinite; }
+    .start-button:hover { animation-play-state: paused; }
+    .start-caption { margin: 13px 0 0; color: var(--muted); font-size: 11px; }
     .primary, .secondary, .quiet, .danger {
       min-height: 44px; padding: 0 19px; border-radius: 999px; border: 0; font-weight: 800; cursor: pointer;
       transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
@@ -204,6 +236,12 @@
     .empty-wide { padding: 40px 10px; text-align: center; color: var(--muted); }
     .error-text { margin: 12px 0; color: #a23550; font-size: 12px; line-height: 1.65; }
     footer { padding: 23px 10px; text-align: center; color: #817a8c; font-size: 10px; line-height: 1.7; }
+    @keyframes stage-arrive { from { opacity: 0; transform: translateY(24px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes halo-breathe { 0%, 100% { transform: scale(.9); opacity: .6; } 50% { transform: scale(1.08); opacity: 1; } }
+    @keyframes orbit-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+    @keyframes orbit-spin { to { transform: rotate(360deg); } }
+    @keyframes stat-arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes button-pulse { 0%, 100% { box-shadow: 0 8px 18px rgba(104,69,197,.23); } 50% { box-shadow: 0 12px 30px rgba(104,69,197,.38); } }
     @media (max-width: 760px) {
       .topbar { padding: 12px 16px; align-items: flex-start; flex-direction: column; gap: 10px; }
       .nav { width: 100%; overflow-x: auto; }
@@ -220,8 +258,11 @@
       .leader-table th, .leader-table td { padding: 11px 7px; }
       .local-note { font-size: 11px; }
       .answer-pair { grid-template-columns: 1fr; }
+      .page.home-mode { min-height: calc(100vh - 174px); padding-block: 22px; }
+      .start-stage { min-height: 500px; padding: 42px 22px; }
+      .start-stage h1 { font-size: 32px; }
     }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
   </style>
 </head>
 <body>
@@ -231,9 +272,9 @@
       <div><div class="brand-name">Quiz 마을</div><div class="brand-caption">M365 Copilot · Agent Builder Pop Quiz</div></div>
     </div>
     <nav class="nav" aria-label="주 메뉴">
-      <button type="button" data-view="plaza" class="active">🏡 마을 광장</button>
-      <button type="button" data-view="admission">🏛 대강당</button>
-      <button type="button" data-view="leaderboard">☷ 전체 순위</button>
+      <button type="button" data-view="plaza" class="active">🏡 퀴즈 홈</button>
+      <button type="button" data-view="admission">🏛 퀴즈 시작</button>
+      <button type="button" data-view="leaderboard" hidden>☷ 퀴즈 리더보드</button>
       <a class="nav button" href="https://learn.microsoft.com/microsoft-365/copilot/" target="_blank" rel="noreferrer" style="text-decoration:none;padding:10px 14px;color:#635d76;font-size:13px;font-weight:750">교육 페이지</a>
     </nav>
   </header>
@@ -292,7 +333,7 @@
     }
     function localNotice() {
       if (LOCAL_API_PREVIEW) return `<div class="local-note"><strong>로컬 채점 서버</strong><span>점수와 정답 판정은 로컬 서버에서 계산합니다. 참가 정보와 기록은 현재 서버 프로세스 메모리에만 있으며 서버를 종료하면 삭제됩니다.</span></div>`;
-      if (SUPABASE_READY) return `<div class="local-note"><strong>행사 데이터 안내</strong><span>이름·부서는 점수와 분리된 비공개 저장소에 보관합니다. 리더보드에는 성명이 전체 공개되며, 부서는 공개하지 않습니다. 데이터는 행사 종료 후 설정된 보관 기간(기본 7일)이 지나면 삭제됩니다.</span></div>`;
+      if (SUPABASE_READY) return "";
       if (LOCAL_PREVIEW) return `<div class="local-note"><strong>파일 미리보기</strong><span>직접 파일을 열면 입력 내용은 저장되지 않으며 점수·정답 판정도 하지 않습니다. 전체 결과를 확인하려면 로컬 Node 서버로 실행해 주세요. 실제 개인정보는 입력하지 마세요.</span></div>`;
       return `<div class="local-note"><strong>서비스 준비 중</strong><span>공용 저장소 연결이 완료되지 않아 참가 정보를 받지 않습니다. Supabase 설정 후 퀴즈를 열 수 있습니다.</span></div>`;
     }
@@ -329,11 +370,13 @@
       } finally {
         state.leaderboardLoading = false;
         state.leaderboardLoadedAt = Date.now();
-        if (state.view === "plaza" || state.view === "leaderboard") render();
+        if (state.view === "leaderboard") render();
       }
     }
     function render() {
+      app.classList.toggle("home-mode", state.view === "plaza");
       document.querySelectorAll(".nav [data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === state.view));
+      document.querySelector('[data-view="leaderboard"]').hidden = !state.latestScore || state.latestScore.preview;
       if (state.view === "admission") return renderAdmission();
       if (state.view === "quiz") return renderQuiz();
       if (state.view === "result") return renderResult();
@@ -346,26 +389,16 @@
       return `<ol class="leader-list">${visible.map((row, index) => `<li class="leader-row"><span class="rank ${index < 3 ? "top" : ""}">${index + 1}</span><div><div class="leader-name">${escapeHTML(row.name)}</div><div class="leader-meta">${formatDate(row.submitted_at)} 제출</div></div><div class="leader-score">${row.score}점</div></li>`).join("")}</ol>`;
     }
     function renderPlaza() {
-      const scores = orderedScores();
       app.innerHTML = `${localNotice()}${state.errorMessage ? `<p class="error-text">${escapeHTML(state.errorMessage)}</p>` : ""}
-        <div class="plaza-grid">
-          <section class="panel panel-rainbow welcome">
-            <span class="eyebrow">🏛 대강당 · Copilot Agent Quiz</span>
-            <h1>도전하고, 배우고,<br>마을의 1등이 되어 보세요!</h1>
-            <p class="welcome-copy">M365 Copilot과 Agent Builder에 대한 20문항 퀴즈예요. 기본 개념부터 지식 원본과 Skill 설계 판단까지, Microsoft Learn 근거와 함께 확인해요.</p>
-            <div class="stat-row"><span class="stat"><b>20</b>문항</span><span class="stat"><b>12</b>기초 · 각 20점</span><span class="stat"><b>8</b>응용·심화 · 80~140점</span></div>
-            <button type="button" class="primary" data-action="start" ${QUIZ_API_READY || LOCAL_PREVIEW ? "" : "disabled"}>${QUIZ_API_READY || LOCAL_PREVIEW ? "이름표 만들고 퀴즈 시작 →" : "저장소 연결 후 시작 가능"}</button>
-          </section>
-          <section class="panel leader-panel">
-            <div class="section-heading"><div><h2>🏆 마을 리더보드</h2><p>이름은 마스킹 없이 표시됩니다</p></div><span class="tag">${scores.length}명 참여</span></div>
-            ${scoreRows(scores, 5)}
-            <div class="leader-footer"><span class="tie-note">동점이면 서버에 먼저 기록된 제출이 위에 올라갑니다.</span><button type="button" class="quiet" data-action="leaderboard">전체 순위 보기 →</button></div>
-          </section>
-        </div>
-        <div class="below-grid">
-          <section class="panel info-band"><div class="info-icon">📚</div><div><h3>공식 문서로 확인한 문제</h3><p>각 문항의 해설에서 Microsoft Learn 근거를 열어볼 수 있어요. 교안 내용도 공식 자료와 대조했습니다.</p></div></section>
-          <section class="panel info-band"><div class="info-icon">⏱️</div><div><h3>점수와 제출 시간으로 순위 결정</h3><p>점수 내림차순, 서버 제출 시각 오름차순으로 정렬합니다.</p></div></section>
-        </div>`;
+        <section class="panel panel-rainbow start-stage">
+          <div class="start-orbit" aria-hidden="true">🏛️</div>
+          <span class="eyebrow">Copilot Agent Quiz</span>
+          <h1>준비되셨나요?<br>퀴즈에 도전해 보세요!</h1>
+          <p class="welcome-copy">M365 Copilot과 Agent Builder 핵심 개념을 20문항으로 확인하고, 모든 문제를 완료한 뒤 점수와 퀴즈 리더보드를 확인하세요.</p>
+          <div class="stat-row"><span class="stat"><b>20</b>문항</span><span class="stat"><b>12</b>기초 · 각 20점</span><span class="stat"><b>8</b>응용·심화 · 80~140점</span></div>
+          <button type="button" class="primary start-button" data-action="start" ${QUIZ_API_READY || LOCAL_PREVIEW ? "" : "disabled"}>${QUIZ_API_READY || LOCAL_PREVIEW ? "퀴즈 시작하기 →" : "저장소 연결 후 시작 가능"}</button>
+          <p class="start-caption">문제를 모두 완료하면 정답 해설과 퀴즈 리더보드가 열립니다.</p>
+        </section>`;
     }
     function renderAdmission() {
       const canStart = QUIZ_API_READY || LOCAL_PREVIEW;
@@ -469,13 +502,13 @@
         : `${result.correct_count} / ${questions.length} 정답 · ${rankText}<br>${formatDate(result.submitted_at)} 제출 · 소요 ${Math.floor(result.duration_ms / 60000)}분 ${Math.floor(result.duration_ms / 1000) % 60}초`;
       const resultActions = result.preview
         ? `<button type="button" class="primary" data-action="plaza">마을 광장으로</button>`
-        : `<button type="button" class="primary" data-action="leaderboard">전체 순위 보기</button><button type="button" class="secondary" data-action="plaza">마을 광장으로</button>`;
+        : `<button type="button" class="primary" data-action="leaderboard">퀴즈 리더보드 보기</button><button type="button" class="secondary" data-action="plaza">퀴즈 홈으로</button>`;
       app.innerHTML = `${localNotice()}<section class="panel panel-rainbow subpage"><div class="result-head"><div class="result-medal">${!result.preview && result.rank === 1 ? "🏆" : "🎉"}</div><span class="eyebrow">${result.preview ? "미리보기 완료" : "퀴즈 제출 완료"}</span><h1>${escapeHTML(result.name)}님, 수고했어요!</h1><div class="result-score">${result.preview ? "완료" : `${result.score}점`}</div><div class="result-detail">${resultSummary}</div></div>
         <div class="result-actions">${resultActions}</div><h2 class="review-title">문항별 답변과 해설 및 Microsoft Learn 근거</h2>${review}</section>`;
     }
     function renderLeaderboard() {
       const scores = orderedScores();
-      app.innerHTML = `${localNotice()}${state.errorMessage ? `<p class="error-text">${escapeHTML(state.errorMessage)}</p>` : ""}<section class="panel panel-rainbow subpage"><div class="leader-title-row"><div><span class="eyebrow">🏆 마을 광장</span><h1>전체 리더보드</h1><p class="subcopy">이름은 전체 표시 · 점수 내림차순 · 서버 제출 시각순</p></div><button type="button" class="secondary" data-action="plaza">← 마을 광장</button></div>${scores.length ? `<div style="overflow-x:auto"><table class="leader-table"><thead><tr><th>순위</th><th>이름</th><th>제출 시각</th><th>점수</th></tr></thead><tbody>${scores.map((row, index) => `<tr><td class="rank-cell">${row.rank ?? index + 1}</td><td><strong>${escapeHTML(row.name)}</strong></td><td>${formatDate(row.submitted_at)}</td><td>${row.score}점</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty-wide">${state.leaderboardLoading ? "리더보드를 불러오는 중입니다…" : "아직 제출된 기록이 없습니다."}</div>`}<div class="leader-footer" style="margin-top:20px"><span class="tie-note">전체 ${scores.length}건</span></div></section>`;
+      app.innerHTML = `${localNotice()}${state.errorMessage ? `<p class="error-text">${escapeHTML(state.errorMessage)}</p>` : ""}<section class="panel panel-rainbow subpage"><div class="leader-title-row"><div><span class="eyebrow">🏆 Quiz Ranking</span><h1>퀴즈 리더보드</h1><p class="subcopy">이름은 전체 표시 · 점수 내림차순 · 서버 제출 시각순</p></div><button type="button" class="secondary" data-action="plaza">← 퀴즈 홈</button></div>${scores.length ? `<div style="overflow-x:auto"><table class="leader-table"><thead><tr><th>순위</th><th>이름</th><th>제출 시각</th><th>점수</th></tr></thead><tbody>${scores.map((row, index) => `<tr><td class="rank-cell">${row.rank ?? index + 1}</td><td><strong>${escapeHTML(row.name)}</strong></td><td>${formatDate(row.submitted_at)}</td><td>${row.score}점</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty-wide">${state.leaderboardLoading ? "퀴즈 리더보드를 불러오는 중입니다…" : "아직 제출된 기록이 없습니다."}</div>`}<div class="leader-footer" style="margin-top:20px"><span class="tie-note">전체 ${scores.length}건</span></div></section>`;
     }
     document.querySelectorAll(".nav [data-view]").forEach(button => button.addEventListener("click", () => {
       state.view = button.dataset.view; state.errorMessage = ""; render(); window.scrollTo({ top: 0, behavior: "smooth" });
@@ -488,7 +521,7 @@
       switch (button.dataset.action) {
         case "start": state.view = "admission"; break;
         case "plaza": state.view = "plaza"; break;
-        case "leaderboard": state.view = "leaderboard"; if (QUIZ_API_READY && Date.now() - state.leaderboardLoadedAt > 15000) refreshLeaderboard(); break;
+        case "leaderboard": if (!state.latestScore || state.latestScore.preview) return; state.view = "leaderboard"; if (QUIZ_API_READY && Date.now() - state.leaderboardLoadedAt > 15000) refreshLeaderboard(); break;
         case "previous": if (state.current > 0) state.current--; break;
         case "next": if (state.answers[state.current] === null) return; if (state.current < questions.length - 1) state.current++; else return submitQuiz(); break;
         case "quit": if (confirm("퀴즈를 그만두고 마을로 돌아갈까요? 지금까지의 답은 점수에 반영되지 않습니다.")) state.view = "plaza"; break;
@@ -496,7 +529,6 @@
       render(); window.scrollTo({ top: 0, behavior: "smooth" });
     });
     render();
-    if (QUIZ_API_READY) refreshLeaderboard();
   </script>
 </body>
 </html>
