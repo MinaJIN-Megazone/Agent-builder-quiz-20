@@ -1,0 +1,10 @@
+project_id = "quiz-village"
+
+[functions.start-quiz]
+verify_jwt = false
+
+[functions.submit-quiz]
+verify_jwt = false
+
+[functions.leaderboard]
+verify_jwt = false

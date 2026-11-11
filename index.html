@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff9f5">
+  <title>Quiz 마을 | Copilot Agent 퀴즈</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #252238;
+      --muted: #77738b;
+      --paper: #fffefd;
+      --line: #e9e3ef;
+      --pink: #f7a9c5;
+      --pink-pale: #fff0f5;
+      --orange: #ffc98c;
+      --orange-pale: #fff5e8;
+      --mint: #a9ddbd;
+      --mint-pale: #effaf2;
+      --blue: #a9cafa;
+      --blue-pale: #f0f6ff;
+      --violet: #6845c5;
+      --violet-dark: #4b2da3;
+      --shadow: 0 18px 48px rgba(58, 46, 99, .10);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      background:
+        radial-gradient(ellipse at 8% 12%, rgba(255, 220, 216, .62), transparent 34rem),
+        radial-gradient(ellipse at 94% 82%, rgba(199, 241, 229, .72), transparent 37rem),
+        linear-gradient(135deg, #fff8f1 0%, #f5f3ff 52%, #eef9f4 100%);
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; }
+    .topbar {
+      min-height: 74px;
+      padding: 0 clamp(18px, 5vw, 72px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: rgba(255, 255, 255, .86);
+      border-bottom: 1px solid rgba(226, 218, 234, .72);
+      backdrop-filter: blur(12px);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 180px; }
+    .brand-mark {
+      width: 40px; height: 40px; display: grid; place-items: center;
+      border-radius: 13px; background: linear-gradient(145deg, #ffd8c7, #e6e3ff);
+      font-size: 22px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.7);
+    }
+    .brand-name { font-weight: 850; font-size: 16px; }
+    .brand-caption { color: var(--muted); font-size: 11px; margin-top: 3px; }
+    .nav { display: flex; align-items: center; gap: 7px; }
+    .nav button {
+      border: 0; background: transparent; padding: 10px 14px; border-radius: 999px;
+      color: #635d76; font-size: 13px; font-weight: 750; cursor: pointer;
+    }
+    .nav button:hover { background: #f6f1fb; }
+    .nav button.active { color: white; background: #3640a6; box-shadow: 0 5px 13px rgba(54,64,166,.18); }
+    .page { width: min(1120px, calc(100% - 36px)); margin: 42px auto 70px; }
+    .local-note {
+      display: flex; align-items: flex-start; gap: 10px; padding: 12px 15px;
+      margin-bottom: 20px; color: #645875; background: rgba(255,255,255,.76);
+      border: 1px solid rgba(228, 219, 239, .9); border-radius: 12px; font-size: 12px; line-height: 1.65;
+    }
+    .local-note strong { color: var(--violet-dark); white-space: nowrap; }
+    .panel {
+      position: relative; background: rgba(255,255,255,.9); border: 1px solid rgba(255,255,255,.92);
+      border-radius: 24px; box-shadow: var(--shadow);
+    }
+    .panel-rainbow::before {
+      content: ""; position: absolute; inset: -2px; z-index: -1; border-radius: 26px;
+      background: linear-gradient(125deg, #ffaec7, #ffd489 38%, #a8dfb5 70%, #b4a1ff);
+    }
+    .plaza-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); gap: 22px; }
+    .welcome { min-height: 430px; padding: clamp(26px, 4vw, 48px); overflow: hidden; }
+    .welcome::after {
+      content: "🏠"; position: absolute; right: 34px; bottom: 26px; font-size: clamp(76px, 10vw, 126px);
+      opacity: .14; transform: rotate(-8deg); pointer-events: none;
+    }
+    .eyebrow, .tag {
+      display: inline-flex; align-items: center; gap: 7px; width: fit-content;
+      padding: 7px 12px; border-radius: 999px; background: var(--pink-pale); color: #a63261;
+      font-size: 12px; font-weight: 850;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    .welcome h1 { max-width: 620px; margin: 21px 0 13px; font-size: clamp(30px, 4vw, 46px); line-height: 1.2; letter-spacing: -.5px; }
+    .welcome-copy { max-width: 530px; margin-bottom: 25px; color: var(--muted); line-height: 1.8; font-size: 15px; }
+    .stat-row { display: flex; flex-wrap: wrap; gap: 9px; margin: 20px 0 25px; }
+    .stat { padding: 9px 12px; background: #f8f5fb; border-radius: 10px; font-size: 12px; color: #625c73; }
+    .stat b { color: var(--ink); margin-right: 4px; }
+    .primary, .secondary, .quiet, .danger {
+      min-height: 44px; padding: 0 19px; border-radius: 999px; border: 0; font-weight: 800; cursor: pointer;
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+    .primary { color: #fff; background: var(--violet); box-shadow: 0 8px 18px rgba(104,69,197,.23); }
+    .primary:hover { transform: translateY(-2px); background: var(--violet-dark); box-shadow: 0 11px 22px rgba(104,69,197,.28); }
+    .secondary { background: #fff; border: 1px solid var(--line); }
+    .secondary:hover, .quiet:hover { background: #f7f3fb; }
+    .quiet { background: transparent; color: var(--violet-dark); padding-inline: 12px; }
+    .danger { color: #9c3658; background: var(--pink-pale); }
+    .leader-panel { padding: 25px; min-height: 430px; }
+    .section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .section-heading h2 { font-size: 20px; margin: 0 0 5px; }
+    .section-heading p { color: var(--muted); margin: 0; font-size: 12px; }
+    .leader-list { list-style: none; padding: 0; margin: 22px 0 16px; }
+    .leader-row { display: grid; grid-template-columns: 31px minmax(0,1fr) auto; align-items: center; gap: 10px; padding: 11px 1px; border-bottom: 1px solid #f0ebf4; }
+    .rank { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 9px; background: #f4f0f8; font-size: 12px; font-weight: 900; color: #625574; }
+    .rank.top { color: #9b5b13; background: #fff1d9; }
+    .leader-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 800; }
+    .leader-meta { color: var(--muted); font-size: 11px; margin-top: 3px; }
+    .leader-score { font-size: 14px; font-weight: 900; white-space: nowrap; }
+    .empty-state { padding: 29px 12px; text-align: center; color: var(--muted); background: #fbf9fd; border-radius: 14px; font-size: 13px; line-height: 1.7; }
+    .leader-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .tie-note { color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .below-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
+    .info-band { padding: 20px 23px; display: flex; gap: 14px; align-items: flex-start; }
+    .info-icon { width: 37px; height: 37px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 12px; background: var(--mint-pale); font-size: 18px; }
+    .info-band h3 { margin: 2px 0 7px; font-size: 14px; }
+    .info-band p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .subpage { max-width: 900px; margin: 0 auto; padding: clamp(24px, 5vw, 54px); }
+    .subpage h1 { margin: 18px 0 9px; font-size: clamp(27px, 4vw, 38px); line-height: 1.25; }
+    .subcopy { color: var(--muted); font-size: 14px; line-height: 1.75; }
+    .form-grid { display: grid; gap: 16px; margin-top: 25px; }
+    .field { display: grid; gap: 7px; }
+    .field label { font-size: 13px; font-weight: 850; }
+    .field input { width: 100%; height: 48px; border: 1px solid #ddd6e9; border-radius: 12px; padding: 0 14px; outline: none; background: #fff; color: var(--ink); }
+    .field input:focus { border-color: #9c82e7; box-shadow: 0 0 0 3px rgba(104,69,197,.11); }
+    .field input::placeholder { color: #aaa5b3; }
+    .privacy-box { margin-top: 3px; padding: 13px 15px; border-radius: 12px; color: #625977; background: #f4efff; font-size: 11px; line-height: 1.7; }
+    .form-actions { display: flex; gap: 10px; margin-top: 3px; }
+    .quiz-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 23px; }
+    .quiz-top .secondary { min-height: 40px; }
+    .quiz-meta { display: flex; align-items: center; gap: 9px; }
+    .score-chip { padding: 9px 13px; border-radius: 999px; background: white; font-size: 12px; font-weight: 800; }
+    .progress { display: grid; grid-template-columns: repeat(20, 1fr); gap: 5px; margin: 18px 0 25px; }
+    .progress span { height: 9px; border-radius: 999px; background: rgba(255,255,255,.92); }
+    .progress span.done { background: #84cea1; }
+    .progress span.current { background: #fff; outline: 2px solid var(--violet); outline-offset: 1px; }
+    .question-card { padding: clamp(23px, 4vw, 38px); }
+    .question-kicker { color: var(--muted); font-family: Georgia, serif; font-size: 16px; margin-bottom: 14px; }
+    .question-kicker b { color: var(--violet); font-family: "Malgun Gothic", sans-serif; }
+    .question-title { font-size: clamp(21px, 3vw, 29px); line-height: 1.5; margin: 0 0 24px; }
+    .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .choice {
+      min-height: 95px; display: grid; grid-template-columns: 38px minmax(0,1fr); align-items: center; gap: 13px;
+      padding: 17px; border: 1.5px solid transparent; border-radius: 17px; text-align: left; cursor: pointer;
+      font-size: 14px; line-height: 1.65; transition: transform .14s ease, box-shadow .14s ease;
+    }
+    .choice:nth-child(4n+1) { background: #fff0f5; border-color: #f5bfd1; }
+    .choice:nth-child(4n+2) { background: #fff5e8; border-color: #f5d09c; }
+    .choice:nth-child(4n+3) { background: #eff9f1; border-color: #b7dfc2; }
+    .choice:nth-child(4n) { background: #f0f6ff; border-color: #c1d5f8; }
+    .choice:hover { transform: translateY(-2px); box-shadow: 0 7px 15px rgba(54,44,80,.08); }
+    .choice.selected { outline: 3px solid var(--violet); outline-offset: 1px; }
+    .choice.correct { background: #e5f7e9; border-color: #6bb782; }
+    .choice.wrong { background: #fff0f0; border-color: #e39393; }
+    .choice-number { width: 33px; height: 33px; display: grid; place-items: center; border-radius: 50%; background: white; font-weight: 900; }
+    .question-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 23px; }
+    .question-controls .right { display: flex; align-items: center; gap: 9px; }
+    .question-controls button:disabled { opacity: .42; cursor: not-allowed; box-shadow: none; }
+    .answer-note { margin: 15px 0 0; padding: 12px 14px; border-radius: 11px; background: #f6f3fb; color: #615a72; font-size: 12px; line-height: 1.7; }
+    .result-head { text-align: center; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+    .result-medal { font-size: 42px; margin-bottom: 7px; }
+    .result-head h1 { margin: 0 0 8px; font-size: 30px; }
+    .result-score { color: var(--violet); font-size: 30px; font-weight: 900; margin: 15px 0 4px; }
+    .result-detail { color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .result-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 9px; margin: 22px 0 30px; }
+    .review-title { font-size: 17px; margin-bottom: 11px; }
+    .review-item { padding: 14px 0; border-top: 1px solid #f0ebf4; }
+    .review-item summary { cursor: pointer; font-size: 13px; line-height: 1.65; font-weight: 800; }
+    .answer-feedback { display: grid; gap: 9px; margin: 12px 0; }
+    .answer-status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 900; }
+    .answer-status-icon { width: 28px; height: 28px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; background: white; font-size: 17px; }
+    .answer-correct { padding: 12px 14px; border: 1px solid #a8d7b4; border-radius: 12px; background: #edf8f0; color: #245d35; }
+    .answer-wrong { padding: 12px 14px; border: 1px solid #efb4b4; border-radius: 12px; background: #fff1f1; color: #873941; }
+    .answer-preview { padding: 12px 14px; border: 1px solid #c8b9ef; border-radius: 12px; background: #f7f3ff; color: #51399b; }
+    .answer-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+    .answer-choice { min-width: 0; padding: 11px 12px; border-radius: 10px; background: rgba(255,255,255,.82); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+    .answer-choice-label { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 11px; font-weight: 900; }
+    .answer-choice.is-wrong { border: 1px solid #e7a5a5; }
+    .answer-choice.is-correct { border: 1px solid #91c9a0; }
+    .answer-choice.is-selected { border: 1px solid #b7a3e8; }
+    .explanation-box { margin: 10px 0; padding: 12px 14px; border-left: 3px solid var(--violet); border-radius: 0 10px 10px 0; background: #f7f4fc; color: #514968; font-size: 12px; line-height: 1.75; }
+    .explanation-title { display: block; margin-bottom: 4px; color: var(--violet-dark); font-size: 11px; font-weight: 900; }
+    .review-item a, .source-link { color: var(--violet-dark); font-size: 11px; font-weight: 750; }
+    .leader-title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+    .leader-title-row h1 { margin: 14px 0 5px; }
+    .leader-table { width: 100%; border-collapse: collapse; }
+    .leader-table th { padding: 12px; text-align: left; color: var(--muted); background: #faf8fc; font-size: 11px; }
+    .leader-table th:first-child { border-radius: 10px 0 0 10px; }
+    .leader-table th:last-child { border-radius: 0 10px 10px 0; text-align: right; }
+    .leader-table td { padding: 14px 12px; border-bottom: 1px solid #f0ebf4; font-size: 13px; }
+    .leader-table td:last-child { text-align: right; font-weight: 900; }
+    .leader-table .rank-cell { width: 48px; font-weight: 900; color: var(--violet-dark); }
+    .empty-wide { padding: 40px 10px; text-align: center; color: var(--muted); }
+    .error-text { margin: 12px 0; color: #a23550; font-size: 12px; line-height: 1.65; }
+    footer { padding: 23px 10px; text-align: center; color: #817a8c; font-size: 10px; line-height: 1.7; }
+    @media (max-width: 760px) {
+      .topbar { padding: 12px 16px; align-items: flex-start; flex-direction: column; gap: 10px; }
+      .nav { width: 100%; overflow-x: auto; }
+      .nav button { white-space: nowrap; padding: 9px 11px; }
+      .page { margin-top: 22px; }
+      .plaza-grid, .below-grid { grid-template-columns: 1fr; }
+      .welcome, .leader-panel { min-height: auto; }
+      .welcome { padding-bottom: 110px; }
+      .welcome::after { right: 20px; bottom: 10px; font-size: 86px; }
+      .choice-grid { grid-template-columns: 1fr; }
+      .choice { min-height: 75px; }
+      .quiz-top { align-items: flex-start; }
+      .leader-title-row { align-items: flex-start; flex-direction: column; }
+      .leader-table th, .leader-table td { padding: 11px 7px; }
+      .local-note { font-size: 11px; }
+      .answer-pair { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" aria-label="Quiz 마을">
+      <div class="brand-mark" aria-hidden="true">🏡</div>
+      <div><div class="brand-name">Quiz 마을</div><div class="brand-caption">M365 Copilot · Agent Builder Pop Quiz</div></div>
+    </div>
+    <nav class="nav" aria-label="주 메뉴">
+      <button type="button" data-view="plaza" class="active">🏡 마을 광장</button>
+      <button type="button" data-view="admission">🏛 대강당</button>
+      <button type="button" data-view="leaderboard">☷ 전체 순위</button>
+      <a class="nav button" href="https://learn.microsoft.com/microsoft-365/copilot/" target="_blank" rel="noreferrer" style="text-decoration:none;padding:10px 14px;color:#635d76;font-size:13px;font-weight:750">교육 페이지</a>
+    </nav>
+  </header>
+  <main class="page" id="app" aria-live="polite"></main>
+  <footer>퀴즈 문항은 Microsoft Learn 자료를 바탕으로 구성했습니다. 제품 기능과 라이선스는 변경될 수 있으니 각 문항의 공식 출처를 함께 확인해 주세요.</footer>
+
+  <script>
+    const SUPABASE_CONFIG = {
+      url: "https://gtieuwysqtdxttnkmlhv.supabase.co",
+      publishableKey: "sb_publishable_JaAL1jNICsX6NEMZJ6kUiQ_H5V-5p6S"
+    };
+    const LOCAL_PREVIEW = location.protocol === "file:";
+    const LOCAL_API_PREVIEW = !LOCAL_PREVIEW && ["localhost", "127.0.0.1"].includes(location.hostname);
+    const SUPABASE_READY = !LOCAL_PREVIEW && /^https:\/\//.test(SUPABASE_CONFIG.url) && Boolean(SUPABASE_CONFIG.publishableKey);
+    const QUIZ_API_READY = SUPABASE_READY || LOCAL_API_PREVIEW;
+    const sources = {
+      builder: { title: "Build agents in Agent Builder", url: "https://learn.microsoft.com/microsoft-365/copilot/extensibility/agent-builder-build-agents" },
+      knowledge: { title: "Add knowledge sources to an agent in Agent Builder", url: "https://learn.microsoft.com/microsoft-365/copilot/extensibility/agent-builder-add-knowledge" },
+      skills: { title: "Add skills to your declarative agent in Agent Builder", url: "https://learn.microsoft.com/microsoft-365/copilot/extensibility/agent-builder-add-skills" },
+      agents: { title: "Compare declarative and custom engine agents", url: "https://learn.microsoft.com/microsoft-365/copilot/extensibility/agents-overview" },
+      code: { title: "Add the code interpreter capability to your agent", url: "https://learn.microsoft.com/microsoft-365/copilot/extensibility/code-interpreter" }
+    };
+    const questions = [
+      { level: "기초", points: 20, source: "builder", q: "Microsoft 365 Copilot의 Agent Builder는 주로 무엇을 만들기 위한 도구인가요?", options: ["모든 사용자의 Copilot 라이선스를 자동 배정하는 도구", "SharePoint 사이트를 자동으로 생성하는 도구", "Microsoft 365 Copilot을 특정 시나리오에 맞게 확장하는 선언형 에이전트", "브라우저 테마를 관리하는 도구"], explain: "Agent Builder는 Microsoft 365 Copilot용 선언형 에이전트를 간편하게 만들고 구성하는 경험입니다." },
+      { level: "기초", points: 20, source: "builder", pptSlide: 2, q: "Agent Builder 구성 화면에서 에이전트의 기본 항목으로 설정할 수 있는 조합은 무엇인가요?", options: ["결제 계정, 호스팅, 도메인, 앱 아이콘", "이름, 설명, 지침, 지식, 추천 프롬프트", "라이선스, 사용자 암호, 브라우저 쿠키", "Teams 채널, SharePoint 목록, Power Automate 흐름만"], explain: "구성 화면에는 이름, 설명, 지침, 지식, 추천 프롬프트가 있습니다. 교안에서도 이 구성 요소를 에이전트 제작의 기본 흐름으로 다룹니다." },
+      { level: "기초", points: 20, source: "builder", q: "Agent Builder 템플릿으로 에이전트를 만들면 기본으로 제공되는 구성은 무엇인가요?", options: ["Dataverse 테이블, 앱, 라이선스", "도메인, 결제 계정, 웹 호스팅", "회의 녹화, 자막, 번역", "설명, 지침, 추천 프롬프트"], explain: "템플릿은 특정 시나리오용 설명, 지침, 프롬프트를 제공하고 이후 사용자 목적에 맞게 조정할 수 있습니다." },
+      { level: "기초", points: 20, source: "builder", q: "만든 에이전트의 응답을 사용 전에 시험해 볼 때 사용하는 탭은 무엇인가요?", options: ["청구", "보관함", "사용해 보기(Try it)", "내보내기"], explain: "Try it 탭에서 에이전트를 시험하고 지침, 지식, 추천 프롬프트를 다듬을 수 있습니다." },
+      { level: "기초", points: 20, source: "knowledge", q: "Agent Builder에서 지식 원본으로 지원되는 조합은 무엇인가요?", options: ["공개 웹사이트, SharePoint·OneDrive, Teams·Outlook 콘텐츠 등", "로컬 프린터와 Bluetooth 장치만", "화면 캡처와 브라우저 기록만", "Excel 차트 색상만"], explain: "지원 원본에는 공개 웹사이트, SharePoint와 OneDrive, Teams 채팅·모임, Outlook 이메일 등이 있습니다. 사용 가능 여부는 설정과 라이선스에 따라 달라질 수 있습니다." },
+      { level: "기초", points: 20, source: "knowledge", q: "Agent Builder 에이전트 하나에 추가할 수 있는 공개 웹사이트 URL은 최대 몇 개인가요?", options: ["10개", "4개", "20개", "제한 없이 가능"], explain: "Microsoft Learn은 공개 웹사이트 URL을 에이전트당 최대 4개로 안내합니다." },
+      { level: "기초", points: 20, source: "knowledge", q: "Agent Builder 지식 원본으로 추가할 수 있는 SharePoint 파일 수 한도는 어떻게 안내되어 있나요?", options: ["에이전트당 4개", "에이전트당 20개", "에이전트당 100개", "한도 없음"], explain: "SharePoint 파일은 에이전트당 최대 100개까지 선택할 수 있습니다." },
+      { level: "기초", points: 20, source: "knowledge", q: "Agent Builder에서 OneDrive 파일 지식 원본의 에이전트별 한도는 무엇인가요?", options: ["4개 파일", "100개 파일", "500개 파일", "50개 파일"], explain: "Microsoft Learn은 OneDrive 파일의 한도를 에이전트당 50개로 안내합니다." },
+      { level: "기초", points: 20, source: "code", pptSlide: 64, q: "업로드한 데이터의 분석이나 계산, 시각화를 위해 Agent Builder에서 사용하는 기능은 무엇인가요?", options: ["Code Interpreter", "Image generator", "Starter prompts", "Web search"], explain: "Code Interpreter는 Python을 실행해 복잡한 계산과 데이터 분석, 시각화 등을 수행합니다. 교안은 데이터 분석 실습에서 이 기능을 켜도록 안내합니다." },
+      { level: "기초", points: 20, source: "builder", q: "외부 서비스와 연동하는 액션을 Agent Builder에서 직접 작성할 수 있나요?", options: ["네, 모든 외부 API를 자동으로 연결합니다.", "네, 단 SharePoint 액션만 가능합니다.", "아니요. 외부 서비스 액션 작성은 지원하지 않습니다.", "아니요. 지식 원본도 추가할 수 없습니다."], explain: "Agent Builder는 외부 서비스를 통합하는 액션 저작을 지원하지 않습니다." },
+      { level: "기초", points: 20, source: "knowledge", pptSlide: 63, q: "Agent Builder가 SharePoint 파일을 지식 원본으로 사용할 때 적용되는 원칙은 무엇인가요?", options: ["에이전트 작성자가 접근할 수 있으면 모든 사용자에게 공개됩니다.", "기존 SharePoint 권한과 민감도 레이블을 존중합니다.", "파일을 에이전트에 추가하면 권한 검사가 해제됩니다.", "SharePoint 권한은 에이전트에 적용되지 않습니다."], explain: "에이전트는 SharePoint와 OneDrive 콘텐츠의 기존 권한과 민감도 레이블을 존중합니다. 교안도 질문한 사용자의 권한으로 파일을 읽는다고 설명합니다." },
+      { level: "기초", points: 20, source: "skills", pptSlide: 36, q: "Agent Builder에서 Skill을 추가할 때 맞는 설명은 무엇인가요?", options: ["Skill은 제한 없이 추가하고 ZIP 용량도 제한이 없습니다.", "Skill은 PDF 파일만 업로드할 수 있습니다.", "SKILL.md 없이 스크립트만 바로 추가합니다.", "에이전트당 최대 8개이며, 각 Skill은 최대 50MB ZIP 패키지로 업로드합니다."], explain: "Learn은 Agent Builder에서 에이전트당 최대 8개 Skill, ZIP 패키지 최대 50MB를 안내합니다. 교안의 한도 설명과 일치합니다." },
+      { level: "응용", points: 80, source: "builder", q: "Agent Builder의 기본 응답 모드 설정은 무엇을 조절하나요?", options: ["에이전트를 사용할 수 있는 조직과 사용자", "응답 속도와 분석 깊이 중 어떤 쪽에 무게를 둘지", "SharePoint 파일의 권한", "추천 프롬프트의 개수"], explain: "응답 모드는 질문에 답할 때 속도를 우선할지 더 깊이 분석할지 정합니다. 사용자는 에이전트를 사용할 때 이 기본값을 바꿀 수 있습니다." },
+      { level: "응용", points: 80, source: "knowledge", pptSlide: 63, q: "SharePoint 또는 OneDrive에 올린 새 지식 파일이 `Preparing`으로 표시됩니다. 이때 에이전트 테스트에 대한 설명으로 맞는 것은 무엇인가요?", options: ["테스트는 가능하지만 파일이 준비 완료되기 전까지는 해당 파일 내용을 응답에 사용하지 않습니다.", "파일 내용을 즉시 사용할 수 있으며 준비 상태는 표시용입니다.", "준비가 끝날 때까지 에이전트의 테스트 기능 전체가 잠깁니다.", "준비 상태가 되면 기존 파일 권한이 적용되지 않습니다."], explain: "새 SharePoint·OneDrive 파일은 준비 중에도 테스트할 수 있지만, 준비가 완료될 때까지 응답의 지식 원본으로 사용되지 않습니다." },
+      { level: "응용", points: 80, source: "builder", pptSlide: 36, q: "선언형 에이전트의 Instructions 입력란 한도에 가까워졌습니다. 반복 가능한 절차와 리소스를 확장하는 적절한 방법은 무엇인가요?", options: ["지침 한도를 늘릴 수 없으므로 기능을 삭제합니다.", "반복 절차와 지원 파일을 Skill 패키지로 분리합니다.", "절차를 웹사이트 URL에 붙여 넣습니다.", "정답을 추천 프롬프트에 작성합니다."], explain: "선언형 에이전트 지침은 8,000자 한도입니다. Skills는 반복 가능한 절차와 리소스·스크립트를 별도 패키지로 구성해 지침을 모듈화합니다." },
+      { level: "심화", points: 100, source: "knowledge", q: "Agent Builder에 `https://example.org/a/b/c?view=1`을 공개 웹사이트 지식 원본으로 추가하려 합니다. 문서 기준으로 맞는 판단은 무엇인가요?", options: ["유효하다. URL 깊이와 쿼리에는 제한이 없습니다.", "유효하지 않다. HTTPS 주소는 사용할 수 없습니다.", "유효하지 않다. 경로가 두 단계보다 깊고 쿼리 매개 변수도 포함합니다.", "유효하다. 단 OneDrive 파일 한도에 포함됩니다."], explain: "공개 웹사이트 URL은 두 단계까지만 허용되며 쿼리 매개 변수를 포함할 수 없습니다." },
+      { level: "심화", points: 100, source: "skills", pptSlide: 36, q: "Agent Builder Skill 패키지에 대한 설명 중 올바른 것은 무엇인가요?", options: ["SKILL.md는 선택 사항이고 ZIP은 최대 500MB입니다.", "SKILL.md가 필수이며 지침은 20,000자 미만이고 ZIP 패키지는 최대 50MB입니다.", "Skill에는 스크립트를 포함할 수 없고 지침도 제한이 없습니다.", "Skill은 에이전트당 하나만 추가할 수 있습니다."], explain: "Agent Builder Skill ZIP에는 SKILL.md가 필수이며 지침은 20,000자 미만입니다. 패키지 크기와 에이전트당 개수 한도는 Learn의 Skills 문서에 안내되어 있습니다." },
+      { level: "심화", points: 100, source: "code", pptSlide: 64, q: "교안처럼 제공된 Excel 자료를 분석하고 계산 기반 결과를 내도록 Agent Builder를 구성합니다. 가장 적절한 설정은 무엇인가요?", options: ["Code Interpreter를 끄고 모든 계산을 일반 지식에 맡깁니다.", "Image generator만 켜고 웹 검색으로 수치를 보완합니다.", "웹 검색을 켜고 파일 권한을 무시하도록 설정합니다.", "Code Interpreter를 켜서 코드 기반 분석을 사용하고, 데이터 근거만 필요한 시나리오는 웹 검색 범위를 제한합니다."], explain: "Code Interpreter는 데이터 분석과 계산을 지원합니다. 교안은 제공 파일만 근거로 하는 실습에서 웹 검색을 끄도록 권장합니다." },
+      { level: "도전", points: 140, source: "agents", q: "복잡한 사용자 지정 오케스트레이션과 자체 모델 선택이 필수인 경우 어떤 에이전트 유형을 검토해야 하나요?", options: ["사용자 지정 엔진 에이전트", "선언형 에이전트만", "Agent Builder 템플릿 에이전트만", "SharePoint 목록 에이전트"], explain: "사용자 지정 엔진 에이전트는 복잡한 워크플로, 자체 오케스트레이션, 자체 모델이 필요한 시나리오에 적합합니다. 추가 호스팅과 운영 책임도 검토해야 합니다." },
+      { level: "응용", points: 80, source: "skills", q: "Agent Builder Skill 패키지에서 허용되는 폴더 계층 깊이는 최대 얼마인가요?", options: ["폴더는 사용할 수 없습니다.", "최대 3단계입니다.", "최대 8단계입니다.", "깊이 제한이 없습니다."], explain: "Microsoft Learn의 Skills 지원 표는 디렉터리 계층 깊이를 최대 3단계로 안내합니다." }
+    ];
+    const state = { view: "plaza", player: null, answers: [], optionOrder: [], current: 0, latestScore: null, scores: [], errorMessage: "", leaderboardLoading: false, leaderboardLoadedAt: 0, submitting: false };
+    const app = document.getElementById("app");
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[char]));
+    }
+    function orderedScores() {
+      return [...state.scores].sort((a, b) => b.score - a.score || Date.parse(a.submitted_at) - Date.parse(b.submitted_at) || String(a.id ?? "").localeCompare(String(b.id ?? "")));
+    }
+    function formatDate(timestamp) {
+      return new Intl.DateTimeFormat("ko-KR", { dateStyle: "short", timeStyle: "short" }).format(new Date(timestamp));
+    }
+    function localNotice() {
+      if (LOCAL_API_PREVIEW) return `<div class="local-note"><strong>로컬 채점 서버</strong><span>점수와 정답 판정은 로컬 서버에서 계산합니다. 참가 정보와 기록은 현재 서버 프로세스 메모리에만 있으며 서버를 종료하면 삭제됩니다.</span></div>`;
+      if (SUPABASE_READY) return `<div class="local-note"><strong>행사 데이터 안내</strong><span>이름·부서는 점수와 분리된 비공개 저장소에 보관합니다. 리더보드에는 성명이 전체 공개되며, 부서는 공개하지 않습니다. 데이터는 행사 종료 후 설정된 보관 기간(기본 7일)이 지나면 삭제됩니다.</span></div>`;
+      if (LOCAL_PREVIEW) return `<div class="local-note"><strong>파일 미리보기</strong><span>직접 파일을 열면 입력 내용은 저장되지 않으며 점수·정답 판정도 하지 않습니다. 전체 결과를 확인하려면 로컬 Node 서버로 실행해 주세요. 실제 개인정보는 입력하지 마세요.</span></div>`;
+      return `<div class="local-note"><strong>서비스 준비 중</strong><span>공용 저장소 연결이 완료되지 않아 참가 정보를 받지 않습니다. Supabase 설정 후 퀴즈를 열 수 있습니다.</span></div>`;
+    }
+    async function callFunction(name, method = "POST", body = undefined) {
+      const baseUrl = LOCAL_API_PREVIEW ? location.origin : SUPABASE_CONFIG.url.replace(/\/$/, "");
+      const authHeaders = LOCAL_API_PREVIEW ? {} : { apikey: SUPABASE_CONFIG.publishableKey, Authorization: `Bearer ${SUPABASE_CONFIG.publishableKey}` };
+      const response = await fetch(`${baseUrl}/functions/v1/${name}`, {
+        method,
+        headers: { ...authHeaders, ...(body ? { "Content-Type": "application/json" } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {})
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "request_failed");
+      return payload;
+    }
+    function userMessage(error) {
+      const messages = {
+        event_closed: "행사 참여 기간이 종료되었습니다.",
+        already_submitted: "이미 제출한 퀴즈입니다.",
+        quiz_scoring_not_configured: "퀴즈 채점 설정이 준비되지 않았습니다.",
+        leaderboard_unavailable: "리더보드를 불러오지 못했습니다.",
+        request_failed: "요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요."
+      };
+      return messages[error.message] || messages.request_failed;
+    }
+    async function refreshLeaderboard() {
+      if (!QUIZ_API_READY || state.leaderboardLoading) return;
+      state.leaderboardLoading = true;
+      try {
+        state.scores = await callFunction("leaderboard", "GET");
+        state.errorMessage = "";
+      } catch (error) {
+        state.errorMessage = userMessage(error);
+      } finally {
+        state.leaderboardLoading = false;
+        state.leaderboardLoadedAt = Date.now();
+        if (state.view === "plaza" || state.view === "leaderboard") render();
+      }
+    }
+    function render() {
+      document.querySelectorAll(".nav [data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === state.view));
+      if (state.view === "admission") return renderAdmission();
+      if (state.view === "quiz") return renderQuiz();
+      if (state.view === "result") return renderResult();
+      if (state.view === "leaderboard") return renderLeaderboard();
+      return renderPlaza();
+    }
+    function scoreRows(scores, limit) {
+      const visible = typeof limit === "number" ? scores.slice(0, limit) : scores;
+      if (!visible.length) return `<div class="empty-state">${state.leaderboardLoading ? "리더보드를 불러오는 중입니다…" : "아직 제출된 기록이 없어요."}<br>${state.leaderboardLoading ? "" : "첫 번째 도전자가 되어 보세요!"}</div>`;
+      return `<ol class="leader-list">${visible.map((row, index) => `<li class="leader-row"><span class="rank ${index < 3 ? "top" : ""}">${index + 1}</span><div><div class="leader-name">${escapeHTML(row.name)}</div><div class="leader-meta">${formatDate(row.submitted_at)} 제출</div></div><div class="leader-score">${row.score}점</div></li>`).join("")}</ol>`;
+    }
+    function renderPlaza() {
+      const scores = orderedScores();
+      app.innerHTML = `${localNotice()}${state.errorMessage ? `<p class="error-text">${escapeHTML(state.errorMessage)}</p>` : ""}
+        <div class="plaza-grid">
+          <section class="panel panel-rainbow welcome">
+            <span class="eyebrow">🏛 대강당 · Copilot Agent Quiz</span>
+            <h1>도전하고, 배우고,<br>마을의 1등이 되어 보세요!</h1>
+            <p class="welcome-copy">M365 Copilot과 Agent Builder에 대한 20문항 퀴즈예요. 기본 개념부터 지식 원본과 Skill 설계 판단까지, Microsoft Learn 근거와 함께 확인해요.</p>
+            <div class="stat-row"><span class="stat"><b>20</b>문항</span><span class="stat"><b>12</b>기초 · 각 20점</span><span class="stat"><b>8</b>응용·심화 · 80~140점</span></div>
+            <button type="button" class="primary" data-action="start" ${QUIZ_API_READY || LOCAL_PREVIEW ? "" : "disabled"}>${QUIZ_API_READY || LOCAL_PREVIEW ? "이름표 만들고 퀴즈 시작 →" : "저장소 연결 후 시작 가능"}</button>
+          </section>
+          <section class="panel leader-panel">
+            <div class="section-heading"><div><h2>🏆 마을 리더보드</h2><p>이름은 마스킹 없이 표시됩니다</p></div><span class="tag">${scores.length}명 참여</span></div>
+            ${scoreRows(scores, 5)}
+            <div class="leader-footer"><span class="tie-note">동점이면 서버에 먼저 기록된 제출이 위에 올라갑니다.</span><button type="button" class="quiet" data-action="leaderboard">전체 순위 보기 →</button></div>
+          </section>
+        </div>
+        <div class="below-grid">
+          <section class="panel info-band"><div class="info-icon">📚</div><div><h3>공식 문서로 확인한 문제</h3><p>각 문항의 해설에서 Microsoft Learn 근거를 열어볼 수 있어요. 교안 내용도 공식 자료와 대조했습니다.</p></div></section>
+          <section class="panel info-band"><div class="info-icon">⏱️</div><div><h3>점수와 제출 시간으로 순위 결정</h3><p>점수 내림차순, 서버 제출 시각 오름차순으로 정렬합니다.</p></div></section>
+        </div>`;
+    }
+    function renderAdmission() {
+      const canStart = QUIZ_API_READY || LOCAL_PREVIEW;
+      app.innerHTML = `${localNotice()}<section class="panel panel-rainbow subpage">
+        <span class="eyebrow">대강당 입장</span><h1>퀴즈를 풀기 전에<br>이름표를 만들어 주세요!</h1>
+        <p class="subcopy">20문항 · 기초 12문항 + 응용·심화 8문항 · 만점 1,000점</p>
+        <form id="admission-form" class="form-grid">
+          <div class="field"><label for="name">이름</label><input id="name" name="name" required maxlength="60" autocomplete="name" placeholder="예) 김민지" ${canStart ? "" : "disabled"}></div>
+          <div class="field"><label for="department">부서</label><input id="department" name="department" required maxlength="80" autocomplete="organization" placeholder="예) AI 비즈니스 솔루션팀" ${canStart ? "" : "disabled"}></div>
+          <div class="privacy-box">리더보드에는 성명이 전체 공개되고 부서는 공개되지 않습니다. 실제 운영 시 이름·부서는 점수와 분리해 보관하며, 행사 종료 후 설정된 보관 기간(기본 7일)이 지나면 함께 삭제합니다. 로컬 미리보기에서는 입력값을 저장하지 않습니다.</div>
+          <div class="form-actions"><button type="button" class="secondary" data-action="plaza">돌아가기</button><button type="submit" class="primary" ${canStart ? "" : "disabled"}>${canStart ? "퀴즈 시작하기 →" : "저장소 연결 후 시작 가능"}</button></div>
+        </form></section>`;
+      document.getElementById("admission-form").addEventListener("submit", startQuiz);
+    }
+    async function startQuiz(event) {
+      event.preventDefault();
+      const formElement = event.target;
+      const form = new FormData(formElement);
+      const name = String(form.get("name")).trim();
+      const department = String(form.get("department")).trim();
+      if (!name || !department) return;
+      const submitButton = formElement.querySelector("[type=submit]");
+      submitButton.disabled = true;
+      state.errorMessage = "";
+      try {
+        const participant = QUIZ_API_READY ? await callFunction("start-quiz", "POST", { name, department }) : { participant_id: "local-preview", started_at: new Date().toISOString() };
+        state.player = { id: participant.participant_id, name, department };
+        state.answers = Array(questions.length).fill(null);
+        state.optionOrder = questions.map(() => [0, 1, 2, 3].sort(() => Math.random() - 0.5));
+        state.current = 0;
+        state.startedAt = participant.started_at;
+        state.view = "quiz";
+        render();
+      } catch (error) {
+        state.errorMessage = userMessage(error);
+        renderAdmission();
+      }
+    }
+    function renderQuiz() {
+      const index = state.current, item = questions[index], selected = state.answers[index];
+      const progress = questions.map((_, i) => `<span class="${i < index ? "done" : i === index ? "current" : ""}"></span>`).join("");
+      const choices = state.optionOrder[index].map((optionIndex, displayIndex) => `<button type="button" class="choice ${selected === optionIndex ? "selected" : ""}" data-answer="${optionIndex}" aria-pressed="${selected === optionIndex}"><span class="choice-number">${displayIndex + 1}</span><span>${escapeHTML(item.options[optionIndex])}</span></button>`).join("");
+      const answeredCount = state.answers.filter(answer => answer !== null).length;
+      app.innerHTML = `${localNotice()}${state.errorMessage ? `<p class="error-text">${escapeHTML(state.errorMessage)}</p>` : ""}<div class="quiz-top"><button class="secondary" type="button" data-action="quit">← 마을로 돌아가기</button><div class="quiz-meta"><span class="tag">${item.level} · ${item.points}점</span><span class="score-chip">${escapeHTML(state.player.name)} · ${answeredCount}/${questions.length} 답변</span></div></div>
+        <div class="progress" aria-label="${index + 1} / ${questions.length} 진행">${progress}</div>
+        <section class="panel panel-rainbow question-card"><div class="question-kicker"><b>Q${String(index + 1).padStart(2, "0")}</b> / Q${questions.length}</div><h1 class="question-title">${escapeHTML(item.q)}</h1>
+        <div class="choice-grid">${choices}</div>
+        <div class="question-controls"><button type="button" class="quiet" data-action="previous" ${index === 0 ? "disabled" : ""}>← 이전 문제</button><div class="right"><span class="tie-note">${selected === null ? "답을 선택해 주세요" : "답변이 저장되었습니다"}</span><button type="button" class="primary" data-action="next" ${selected === null || state.submitting ? "disabled" : ""}>${index === questions.length - 1 ? "제출하고 결과 보기" : "다음 문제 →"}</button></div></div></section>`;
+      app.querySelectorAll("[data-answer]").forEach(button => button.addEventListener("click", () => { state.answers[index] = Number(button.dataset.answer); renderQuiz(); }));
+    }
+    async function submitQuiz() {
+      if (!QUIZ_API_READY) {
+        state.latestScore = {
+          preview: true,
+          name: state.player.name,
+          submitted_at: new Date().toISOString(),
+          duration_ms: Math.max(0, Date.now() - Date.parse(state.startedAt))
+        };
+        state.errorMessage = "";
+        state.view = "result";
+        render();
+        return;
+      }
+      state.submitting = true;
+      state.errorMessage = "";
+      renderQuiz();
+      try {
+        const result = await callFunction("submit-quiz", "POST", { participantId: state.player.id, answers: state.answers });
+        state.latestScore = { ...result, name: state.player.name, rank: 0 };
+        try {
+          state.scores = await callFunction("leaderboard", "GET");
+          const entry = state.scores.find(row => row.name === state.player.name && row.score === result.score && row.submitted_at === result.submitted_at);
+          if (entry) state.latestScore.rank = entry.rank;
+        } catch { state.scores = []; }
+        state.view = "result";
+      } catch (error) {
+        state.errorMessage = userMessage(error);
+      } finally {
+        state.submitting = false;
+        render();
+      }
+    }
+    function renderResult() {
+      const result = state.latestScore;
+      const review = questions.map((item, index) => {
+        const selectedAnswer = state.answers[index];
+        const correct = result.preview ? null : result.correctness[index];
+        const correctIndex = result.preview ? null : result.correct_answers[index];
+        const answerFeedback = result.preview
+          ? `<div class="answer-feedback"><div class="answer-status answer-preview"><span class="answer-status-icon" aria-hidden="true">📝</span><span>미리보기 답변</span></div><div class="answer-choice is-selected">${selectedAnswer === null ? "응답하지 않았습니다." : escapeHTML(item.options[selectedAnswer])}</div></div>`
+          : correct
+            ? `<div class="answer-feedback"><div class="answer-status answer-correct"><span class="answer-status-icon" aria-hidden="true">✓</span><span>정답이에요!</span></div><div class="answer-choice is-correct"><span class="answer-choice-label">✓ 정답</span>${escapeHTML(item.options[correctIndex])}</div></div>`
+            : `<div class="answer-feedback"><div class="answer-status answer-wrong"><span class="answer-status-icon" aria-hidden="true">✕</span><span>아쉬워요, 다시 확인해 보세요.</span></div><div class="answer-pair"><div class="answer-choice is-wrong"><span class="answer-choice-label">✕ 내 답</span>${escapeHTML(item.options[selectedAnswer])}</div><div class="answer-choice is-correct"><span class="answer-choice-label">✓ 정답</span>${escapeHTML(item.options[correctIndex])}</div></div></div>`;
+        const pptReference = item.pptSlide ? ` · 교안 ${item.pptSlide}장` : "";
+        const icon = result.preview ? selectedAnswer === null ? "▫️" : "📝" : correct ? "✅" : "▫️";
+        const points = result.preview ? "" : `${item.points}점 · `;
+        return `<details class="review-item ${correct === null ? "" : correct ? "is-correct" : "is-incorrect"}"><summary>${icon} Q${String(index + 1).padStart(2, "0")} · ${points}${escapeHTML(item.q)}</summary>${answerFeedback}<div class="explanation-box"><span class="explanation-title">정답 해설</span>${escapeHTML(item.explain)}</div><a href="${sources[item.source].url}" target="_blank" rel="noreferrer">Microsoft Learn: ${escapeHTML(sources[item.source].title)} ↗</a><span class="tie-note">${pptReference}</span></details>`;
+      }).join("");
+      const rankText = result.rank ? `현재 ${result.rank}위` : "리더보드에서 순위를 확인해 주세요";
+      const resultSummary = result.preview
+        ? `${questions.length}문항 풀이 완료 · 로컬 미리보기에서는 점수와 정답 판정을 하지 않습니다.`
+        : `${result.correct_count} / ${questions.length} 정답 · ${rankText}<br>${formatDate(result.submitted_at)} 제출 · 소요 ${Math.floor(result.duration_ms / 60000)}분 ${Math.floor(result.duration_ms / 1000) % 60}초`;
+      const resultActions = result.preview
+        ? `<button type="button" class="primary" data-action="plaza">마을 광장으로</button>`
+        : `<button type="button" class="primary" data-action="leaderboard">전체 순위 보기</button><button type="button" class="secondary" data-action="plaza">마을 광장으로</button>`;
+      app.innerHTML = `${localNotice()}<section class="panel panel-rainbow subpage"><div class="result-head"><div class="result-medal">${!result.preview && result.rank === 1 ? "🏆" : "🎉"}</div><span class="eyebrow">${result.preview ? "미리보기 완료" : "퀴즈 제출 완료"}</span><h1>${escapeHTML(result.name)}님, 수고했어요!</h1><div class="result-score">${result.preview ? "완료" : `${result.score}점`}</div><div class="result-detail">${resultSummary}</div></div>
+        <div class="result-actions">${resultActions}</div><h2 class="review-title">문항별 답변과 해설 및 Microsoft Learn 근거</h2>${review}</section>`;
+    }
+    function renderLeaderboard() {
+      const scores = orderedScores();
+      app.innerHTML = `${localNotice()}${state.errorMessage ? `<p class="error-text">${escapeHTML(state.errorMessage)}</p>` : ""}<section class="panel panel-rainbow subpage"><div class="leader-title-row"><div><span class="eyebrow">🏆 마을 광장</span><h1>전체 리더보드</h1><p class="subcopy">이름은 전체 표시 · 점수 내림차순 · 서버 제출 시각순</p></div><button type="button" class="secondary" data-action="plaza">← 마을 광장</button></div>${scores.length ? `<div style="overflow-x:auto"><table class="leader-table"><thead><tr><th>순위</th><th>이름</th><th>제출 시각</th><th>점수</th></tr></thead><tbody>${scores.map((row, index) => `<tr><td class="rank-cell">${row.rank ?? index + 1}</td><td><strong>${escapeHTML(row.name)}</strong></td><td>${formatDate(row.submitted_at)}</td><td>${row.score}점</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty-wide">${state.leaderboardLoading ? "리더보드를 불러오는 중입니다…" : "아직 제출된 기록이 없습니다."}</div>`}<div class="leader-footer" style="margin-top:20px"><span class="tie-note">전체 ${scores.length}건</span></div></section>`;
+    }
+    document.querySelectorAll(".nav [data-view]").forEach(button => button.addEventListener("click", () => {
+      state.view = button.dataset.view; state.errorMessage = ""; render(); window.scrollTo({ top: 0, behavior: "smooth" });
+      if (QUIZ_API_READY && Date.now() - state.leaderboardLoadedAt > 15000) refreshLeaderboard();
+    }));
+    app.addEventListener("submit", event => { if (event.target.id === "admission-form") startQuiz(event); });
+    app.addEventListener("click", event => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      switch (button.dataset.action) {
+        case "start": state.view = "admission"; break;
+        case "plaza": state.view = "plaza"; break;
+        case "leaderboard": state.view = "leaderboard"; if (QUIZ_API_READY && Date.now() - state.leaderboardLoadedAt > 15000) refreshLeaderboard(); break;
+        case "previous": if (state.current > 0) state.current--; break;
+        case "next": if (state.answers[state.current] === null) return; if (state.current < questions.length - 1) state.current++; else return submitQuiz(); break;
+        case "quit": if (confirm("퀴즈를 그만두고 마을로 돌아갈까요? 지금까지의 답은 점수에 반영되지 않습니다.")) state.view = "plaza"; break;
+      }
+      render(); window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    render();
+    if (QUIZ_API_READY) refreshLeaderboard();
+  </script>
+</body>
+</html>
