@@ -31,5 +31,5 @@ export function jsonResponse(request, body, status = 200) {
 }
 
 export function preflightResponse(request) {
-  return new Response("ok", { status: 204, headers: corsHeaders(request) });
+  return new Response(null, { status: 204, headers: corsHeaders(request) });
 }

@@ -378,7 +378,6 @@
           <div class="privacy-box">리더보드에는 성명이 전체 공개되고 부서는 공개되지 않습니다. 실제 운영 시 이름·부서는 점수와 분리해 보관하며, 행사 종료 후 설정된 보관 기간(기본 7일)이 지나면 함께 삭제합니다. 로컬 미리보기에서는 입력값을 저장하지 않습니다.</div>
           <div class="form-actions"><button type="button" class="secondary" data-action="plaza">돌아가기</button><button type="submit" class="primary" ${canStart ? "" : "disabled"}>${canStart ? "퀴즈 시작하기 →" : "저장소 연결 후 시작 가능"}</button></div>
         </form></section>`;
-      document.getElementById("admission-form").addEventListener("submit", startQuiz);
     }
     async function startQuiz(event) {
       event.preventDefault();
